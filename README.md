@@ -63,6 +63,63 @@ Start the server:
 python api.py
 ```
 
+## Docker Compose (recommended for local dev)
+
+The easiest way to run the backend locally with MongoDB:
+
+1. Copy `.env.example` to `.env` and fill in your OAuth values.
+2. Start everything:
+
+```bash
+docker compose up --build
+```
+
+This launches two containers on a shared `fluxmod-dev-network` bridge network:
+
+| Service | Container | Address |
+|---------|-----------|---------|
+| Backend | `fluxmod-backend-dev` | `http://localhost:8000` |
+| MongoDB | `fluxmod-mongo-dev` | `mongodb://localhost:27017` |
+
+`MONGODB_URI` is automatically overridden to `mongodb://mongo:27017` inside the backend container so no `.env` change is needed.
+
+Stop containers:
+
+```bash
+docker compose down
+```
+
+Stop and delete MongoDB data:
+
+```bash
+docker compose down -v
+```
+
+> **Connecting other services:** The compose file exposes a named network (`fluxmod-dev-network`). In a separate compose project for your frontend or bot, reference it as an external network:
+>
+> ```yaml
+> networks:
+>   fluxmod-network:
+>     external: true
+>     name: fluxmod-dev-network
+> ```
+
+## Docker (standalone)
+
+Build and run the backend container without Compose (requires a reachable MongoDB instance):
+
+```bash
+# Build
+make build
+# or: docker build -t fluxmod-backend .
+
+# Run
+make run
+# or: docker run --rm -p 8000:8000 --env-file .env fluxmod-backend
+```
+
+The Dockerfile uses a multi-stage build (builder → runtime) with a non-root `app` user for smaller images and safer defaults.
+
 Health check endpoint: `http://127.0.0.1:8000/healthz`
 
 ## Deployment (Render)
