@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fluxmod-backend-dev
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+    command: python -m gunicorn 'api2:create_app()' --bind 0.0.0.0:8000 --workers 1
+    depends_on:
+      mongo:
+        condition: service_started
+    networks:
+      - fluxmod-network
+
+  mongo:
+    image: mongo:7
+    container_name: fluxmod-mongo-dev
+    ports:
+      - "27017:27017"
+    command: --quiet
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - fluxmod-network
+
+volumes:
+  mongo_data:
+
+networks:
+  fluxmod-network:
+    name: fluxmod-dev-network
+    driver: bridge
