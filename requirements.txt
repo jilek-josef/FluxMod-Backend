@@ -10,4 +10,4 @@ gunicorn
 colorama
 fluxer.py
 requests
-pymongo
+pymongo[srv]
