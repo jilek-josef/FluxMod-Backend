@@ -37,6 +37,7 @@ ENVIRONMENT=development
 # Optional overrides:
 # SESSION_SAME_SITE=lax
 # SESSION_HTTPS_ONLY=false
+# SESSION_LIFETIME_DAYS=7
 # MONGODB_URI=mongodb://localhost:27017
 # MONGODB_DB_NAME=fluxmod
 # MONGODB_COLLECTION_NAME=app_data
@@ -49,6 +50,7 @@ For production (HTTPS + cross-site frontend), use:
 ENVIRONMENT=production
 SESSION_SAME_SITE=none
 SESSION_HTTPS_ONLY=true
+SESSION_LIFETIME_DAYS=30
 FRONTEND_URL=https://fluxmod-frontend.onrender.com/
 ```
 
@@ -152,6 +154,7 @@ SESSION_SECRET=<long-random-string>
 ENVIRONMENT=production
 SESSION_SAME_SITE=none
 SESSION_HTTPS_ONLY=true
+SESSION_LIFETIME_DAYS=30
 OAUTH_REDIRECT_URI=https://<your-render-service>.onrender.com/auth
 FRONTEND_URL=https://fluxmod-frontend.onrender.com/
 ALLOWED_ORIGINS=https://fluxmod-frontend.onrender.com/

@@ -125,6 +125,7 @@ def auth_callback():
         "avatar_url": profile.get("avatar_url") or profile.get("avatar"),
         "guilds": guilds,
     }
+    session.permanent = True
 
     print(
         f"[DEBUG] OAuth session established for user {session['user']['username']} ({session['user']['id']})"

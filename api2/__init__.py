@@ -2,11 +2,13 @@ from flask import Flask
 from flask_cors import CORS
 from flask import g, request
 from time import perf_counter
+from datetime import timedelta
 
 from api2.globals import (
     SESSION_SECRET,
     SESSION_SAME_SITE,
     SESSION_HTTPS_ONLY,
+    SESSION_LIFETIME_DAYS,
     build_allowed_origins,
 )
 from api2.debug import debug_kv, get_logger
@@ -29,11 +31,13 @@ def create_app() -> Flask:
     app.config["SECRET_KEY"] = SESSION_SECRET
     app.config["SESSION_COOKIE_SAMESITE"] = SESSION_SAME_SITE
     app.config["SESSION_COOKIE_SECURE"] = SESSION_HTTPS_ONLY
+    app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=SESSION_LIFETIME_DAYS)
     debug_kv(
         logger,
         "Session cookie configuration",
         same_site=SESSION_SAME_SITE,
         secure=SESSION_HTTPS_ONLY,
+        lifetime_days=SESSION_LIFETIME_DAYS,
     )
 
     # Allow browser clients (frontend) to include session cookies.
