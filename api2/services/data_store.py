@@ -1,5 +1,6 @@
 import os
 from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 import certifi
 from pymongo import MongoClient
@@ -19,6 +20,23 @@ MONGODB_DOCUMENT_ID = os.getenv("MONGODB_DOCUMENT_ID", "singleton")
 _mongo_client: MongoClient | None = None
 
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _uri_uses_tls(uri: str) -> bool:
+    if uri.startswith("mongodb+srv://"):
+        return True
+
+    parsed = urlparse(uri)
+    params = parse_qs(parsed.query)
+    tls_values = params.get("tls", []) + params.get("ssl", [])
+    return any(value.strip().lower() == "true" for value in tls_values)
+
+
 def default_data() -> dict[str, Any]:
     """Return the baseline data shape stored in MongoDB."""
     return {"guilds": {}, "rules": []}
@@ -27,6 +45,7 @@ def default_data() -> dict[str, Any]:
 def _get_collection() -> Collection:
     global _mongo_client
     if _mongo_client is None:
+        uri_requests_tls = _uri_uses_tls(MONGODB_URI)
         mongo_client_options: dict[str, Any] = {
             "serverSelectionTimeoutMS": int(
                 os.getenv("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")
@@ -35,9 +54,17 @@ def _get_collection() -> Collection:
             "socketTimeoutMS": int(os.getenv("MONGODB_SOCKET_TIMEOUT_MS", "20000")),
         }
 
-        if MONGODB_URI.startswith("mongodb+srv://"):
+        if uri_requests_tls:
             mongo_client_options["tls"] = True
-            mongo_client_options["tlsCAFile"] = certifi.where()
+            mongo_client_options["tlsCAFile"] = os.getenv(
+                "MONGODB_TLS_CA_FILE", certifi.where()
+            )
+
+        if _env_bool("MONGODB_TLS_ALLOW_INVALID_CERTIFICATES", False):
+            mongo_client_options["tlsAllowInvalidCertificates"] = True
+
+        if _env_bool("MONGODB_TLS_ALLOW_INVALID_HOSTNAMES", False):
+            mongo_client_options["tlsAllowInvalidHostnames"] = True
 
         _mongo_client = MongoClient(MONGODB_URI, **mongo_client_options)
         _mongo_client.admin.command("ping")

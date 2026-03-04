@@ -184,7 +184,24 @@ Optional overrides:
 MONGODB_DB_NAME=fluxmod
 MONGODB_COLLECTION_NAME=app_data
 MONGODB_DOCUMENT_ID=singleton
+MONGODB_TLS_CA_FILE=/etc/ssl/certs/ca-certificates.crt
+# Only for debugging TLS issues in non-production environments:
+# MONGODB_TLS_ALLOW_INVALID_CERTIFICATES=true
+# MONGODB_TLS_ALLOW_INVALID_HOSTNAMES=true
 ```
+
+For MongoDB Atlas, prefer an SRV URI:
+
+```env
+MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+```
+
+If you hit TLS handshake errors (`TLSV1_ALERT_INTERNAL_ERROR`), verify:
+
+- The Atlas URI is correct (prefer `mongodb+srv://...`).
+- The deployment server outbound IP is allowed in Atlas Network Access.
+- The OS CA bundle is installed/up to date (for Debian/Ubuntu: `ca-certificates`).
+- You are not forcing old TLS via proxies/load balancers between app and Atlas.
 
 ## Deployment (Ubuntu)
 
