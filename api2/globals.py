@@ -59,21 +59,23 @@ if IS_PRODUCTION:
     OAUTH_REDIRECT_URI = (
         os.getenv("OAUTH_REDIRECT_URI") or "https://api.example.com/auth"
     )
-    SESSION_SAME_SITE = _resolve_session_same_site("none")
+    configured_same_site = _resolve_session_same_site("none")
+    SESSION_SAME_SITE = "None"
     SESSION_HTTPS_ONLY = _env_bool("SESSION_HTTPS_ONLY", True)
     SESSION_LIFETIME_DAYS = _resolve_session_lifetime_days(30)
     FRONTEND_URL = os.getenv("FRONTEND_URL") or "https://fluxmod-frontend.onrender.com"
     OAUTH_PROVIDER = os.getenv("OAUTH_PROVIDER", "fluxer").lower()
     FLUXER_SCOPE = os.getenv("FLUXER_SCOPE", "identify guilds")
 
+    if configured_same_site != "None":
+        logger.warning(
+            "Ignoring SESSION_SAME_SITE=%s in production and forcing SameSite=None for cross-origin credentialed sessions.",
+            configured_same_site,
+        )
+
     if SESSION_SAME_SITE == "None" and not SESSION_HTTPS_ONLY:
         raise ValueError(
             "Production requires SESSION_HTTPS_ONLY=true when SESSION_SAME_SITE=none"
-        )
-    if SESSION_SAME_SITE != "None":
-        logger.warning(
-            "Production SESSION_SAME_SITE=%s may break cross-origin credentialed logins; use 'none' when frontend and API are on different origins.",
-            SESSION_SAME_SITE,
         )
 else:
     SESSION_SECRET = os.getenv("SESSION_SECRET") or "melobytesarebestbytes"
