@@ -6,7 +6,9 @@ from typing import Any
 
 
 def is_debug_enabled() -> bool:
-    value = (os.getenv("BACKEND_DEBUG") or os.getenv("DEBUG") or "false").strip().lower()
+    value = (
+        (os.getenv("BACKEND_DEBUG") or os.getenv("DEBUG") or "false").strip().lower()
+    )
     return value in {"1", "true", "yes", "on"}
 
 

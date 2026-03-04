@@ -42,7 +42,9 @@ def login():
     client = oauth.create_client(OAUTH_PROVIDER)
     if client is None:
         print(f"[ERROR] OAuth client not configured for provider {OAUTH_PROVIDER}")
-        return jsonify({"detail": f"OAuth provider '{OAUTH_PROVIDER}' not configured"}), 500
+        return jsonify(
+            {"detail": f"OAuth provider '{OAUTH_PROVIDER}' not configured"}
+        ), 500
 
     return client.authorize_redirect(
         redirect_uri=OAUTH_REDIRECT_URI,
@@ -60,7 +62,9 @@ def auth_callback():
     client = oauth.create_client(OAUTH_PROVIDER)
     if client is None:
         print(f"[ERROR] OAuth client not configured for provider {OAUTH_PROVIDER}")
-        return jsonify({"detail": f"OAuth provider '{OAUTH_PROVIDER}' not configured"}), 500
+        return jsonify(
+            {"detail": f"OAuth provider '{OAUTH_PROVIDER}' not configured"}
+        ), 500
 
     # Exchange authorization code for access token
     try:
@@ -114,15 +118,17 @@ def auth_callback():
     # Populate session with user info
     session["user"] = {
         "id": profile.get("id"),
-        "username": profile.get("username") 
-                    or profile.get("preferred_username") 
-                    or profile.get("name"),
+        "username": profile.get("username")
+        or profile.get("preferred_username")
+        or profile.get("name"),
         "discriminator": profile.get("discriminator"),
         "avatar_url": profile.get("avatar_url") or profile.get("avatar"),
         "guilds": guilds,
     }
 
-    print(f"[DEBUG] OAuth session established for user {session['user']['username']} ({session['user']['id']})")
+    print(
+        f"[DEBUG] OAuth session established for user {session['user']['username']} ({session['user']['id']})"
+    )
     redirect_target = FRONTEND_URL if IS_PRODUCTION else "http://localhost:3000"
     return redirect(redirect_target)
 

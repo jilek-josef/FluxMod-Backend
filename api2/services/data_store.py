@@ -28,7 +28,9 @@ def _get_collection() -> Collection:
     global _mongo_client
     if _mongo_client is None:
         mongo_client_options: dict[str, Any] = {
-            "serverSelectionTimeoutMS": int(os.getenv("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")),
+            "serverSelectionTimeoutMS": int(
+                os.getenv("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")
+            ),
             "connectTimeoutMS": int(os.getenv("MONGODB_CONNECT_TIMEOUT_MS", "10000")),
             "socketTimeoutMS": int(os.getenv("MONGODB_SOCKET_TIMEOUT_MS", "20000")),
         }
@@ -88,7 +90,11 @@ def save_data(data: dict[str, Any]) -> None:
     """Persist backend data into MongoDB."""
     try:
         collection = _get_collection()
-        collection.replace_one({"_id": MONGODB_DOCUMENT_ID}, {"_id": MONGODB_DOCUMENT_ID, **data}, upsert=True)
+        collection.replace_one(
+            {"_id": MONGODB_DOCUMENT_ID},
+            {"_id": MONGODB_DOCUMENT_ID, **data},
+            upsert=True,
+        )
     except PyMongoError as exc:
         logger.exception("MongoDB save failed: %s", exc)
         return

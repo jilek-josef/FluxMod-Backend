@@ -22,8 +22,12 @@ def list_guilds():
     guilds = []
 
     for guild_id, info in data.get("guilds", {}).items():
-        rule_count = sum(1 for rule in data.get("rules", []) if rule.get("guild_id") == guild_id)
-        guilds.append({"id": guild_id, "name": info.get("name"), "rule_count": rule_count})
+        rule_count = sum(
+            1 for rule in data.get("rules", []) if rule.get("guild_id") == guild_id
+        )
+        guilds.append(
+            {"id": guild_id, "name": info.get("name"), "rule_count": rule_count}
+        )
 
     debug_kv(logger, "Guild list generated", guild_count=len(guilds))
 
@@ -45,12 +49,22 @@ def list_rules(guild_id: str):
 def create_rule(guild_id: str):
     """Create a new rule inside the selected guild."""
     payload = request.get_json(silent=True) or {}
-    debug_kv(logger, "Create rule payload received", guild_id=guild_id, fields=list(payload.keys()))
+    debug_kv(
+        logger,
+        "Create rule payload received",
+        guild_id=guild_id,
+        fields=list(payload.keys()),
+    )
 
     try:
         normalized = parse_rule_payload(payload)
     except ValidationError as exc:
-        debug_kv(logger, "Create rule payload validation failed", guild_id=guild_id, error=str(exc))
+        debug_kv(
+            logger,
+            "Create rule payload validation failed",
+            guild_id=guild_id,
+            error=str(exc),
+        )
         return jsonify({"detail": str(exc)}), 400
 
     data = load_data()
@@ -70,12 +84,22 @@ def create_rule(guild_id: str):
 def update_rule(rule_id: str):
     """Update an existing rule by id."""
     payload = request.get_json(silent=True) or {}
-    debug_kv(logger, "Update rule payload received", rule_id=rule_id, fields=list(payload.keys()))
+    debug_kv(
+        logger,
+        "Update rule payload received",
+        rule_id=rule_id,
+        fields=list(payload.keys()),
+    )
 
     try:
         normalized = parse_rule_payload(payload)
     except ValidationError as exc:
-        debug_kv(logger, "Update rule payload validation failed", rule_id=rule_id, error=str(exc))
+        debug_kv(
+            logger,
+            "Update rule payload validation failed",
+            rule_id=rule_id,
+            error=str(exc),
+        )
         return jsonify({"detail": str(exc)}), 400
 
     data = load_data()

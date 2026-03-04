@@ -17,12 +17,7 @@ Flask-based REST API for AutoMod rule management with Fluxer OAuth authenticatio
 ## Local Setup
 
 ```bash
-python -m venv .venv
-# Windows PowerShell
-.\.venv\Scripts\Activate.ps1
-# Linux/Mac
-source .venv/bin/activate
-pip install -r requirements.txt
+uv sync
 ```
 
 Create `.env` in this directory:
@@ -140,8 +135,8 @@ This repository includes a Render blueprint at `render.yaml` (repo root).
 ### Option B: Manual web service
 
 - Root Directory: leave empty (repo root)
-- Build Command: `pip install -r requirements.txt`
-- Start Command: `gunicorn "api2:create_app()" --bind 0.0.0.0:$PORT`
+- Build Command: `uv sync`
+- Start Command: `uv run gunicorn "api2:create_app()" --bind 0.0.0.0:$PORT`
 
 Required environment values:
 
@@ -196,8 +191,8 @@ MONGODB_DOCUMENT_ID=singleton
 4. Run with gunicorn + nginx:
 
 ```bash
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:8000 "api2:create_app()"
+uv sync
+uv run gunicorn -w 4 -b 0.0.0.0:8000 "api2:create_app()"
 ```
 
 Nginx config example:
