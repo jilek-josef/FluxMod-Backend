@@ -12,9 +12,11 @@ from api2.debug import debug_kv, get_logger
 
 logger = get_logger("services.data_store")
 
-MONGODB_URI = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME", "fluxmod")
-MONGODB_COLLECTION_NAME = os.getenv("MONGODB_COLLECTION_NAME", "app_data")
+MONGODB_URI = os.getenv("MONGODB_URI") or os.getenv(
+    "MONGO_URI", "mongodb://localhost:27017"
+)
+MONGODB_DB_NAME = os.getenv("DB_NAME")
+MONGODB_COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 MONGODB_DOCUMENT_ID = os.getenv("MONGODB_DOCUMENT_ID", "singleton")
 
 _mongo_client: MongoClient | None = None

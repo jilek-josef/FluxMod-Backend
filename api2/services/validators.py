@@ -29,10 +29,25 @@ def parse_rule_payload(payload: dict) -> dict:
         debug_kv(logger, "Invalid enabled value received", enabled=enabled)
         raise ValidationError("enabled must be a boolean")
 
+    keywords_value = payload.get("keywords", payload.get("keyword", []))
+    if isinstance(keywords_value, str):
+        keywords = [keywords_value.strip()] if keywords_value.strip() else []
+    elif isinstance(keywords_value, list):
+        if not all(isinstance(item, str) for item in keywords_value):
+            debug_kv(logger, "Invalid keywords received", keywords=keywords_value)
+            raise ValidationError("keywords must be a list of strings")
+        keywords = [item.strip() for item in keywords_value if item.strip()]
+    elif keywords_value is None:
+        keywords = []
+    else:
+        debug_kv(logger, "Invalid keywords type received", keywords=keywords_value)
+        raise ValidationError("keywords must be a list of strings")
+
     return {
         "name": str(payload["name"]),
         "pattern": str(payload["pattern"]),
         "action": str(payload["action"]),
+        "keywords": keywords,
         "threshold": threshold,
         "enabled": enabled,
     }
