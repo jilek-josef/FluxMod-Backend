@@ -12,11 +12,11 @@ from api2.debug import debug_kv, get_logger
 
 logger = get_logger("services.data_store")
 
-MONGODB_URI = os.getenv("MONGODB_URI") or os.getenv(
-    "MONGO_URI", "mongodb://localhost:27017"
+MONGODB_URI = os.getenv("MONGODB_URI") or os.getenv("MONGO_URI")
+MONGODB_DB_NAME = os.getenv("MONGODB_DB_NAME") or os.getenv("DB_NAME")
+MONGODB_COLLECTION_NAME = os.getenv("MONGODB_COLLECTION_NAME") or os.getenv(
+    "COLLECTION_NAME"
 )
-MONGODB_DB_NAME = os.getenv("DB_NAME")
-MONGODB_COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 MONGODB_DOCUMENT_ID = os.getenv("MONGODB_DOCUMENT_ID", "singleton")
 
 _mongo_client: MongoClient | None = None
@@ -46,8 +46,21 @@ def default_data() -> dict[str, Any]:
 
 def _get_collection() -> Collection:
     global _mongo_client
+    uri = MONGODB_URI
+    db_name = MONGODB_DB_NAME
+    collection_name = MONGODB_COLLECTION_NAME
+
+    if not uri:
+        raise RuntimeError("MONGODB_URI or MONGO_URI must be set")
+
+    if not db_name:
+        raise RuntimeError("MONGODB_DB_NAME or DB_NAME must be set")
+
+    if not collection_name:
+        raise RuntimeError("MONGODB_COLLECTION_NAME or COLLECTION_NAME must be set")
+
     if _mongo_client is None:
-        uri_requests_tls = _uri_uses_tls(MONGODB_URI)
+        uri_requests_tls = _uri_uses_tls(uri)
         mongo_client_options: dict[str, Any] = {
             "serverSelectionTimeoutMS": int(
                 os.getenv("MONGODB_SERVER_SELECTION_TIMEOUT_MS", "5000")
@@ -68,10 +81,10 @@ def _get_collection() -> Collection:
         if _env_bool("MONGODB_TLS_ALLOW_INVALID_HOSTNAMES", False):
             mongo_client_options["tlsAllowInvalidHostnames"] = True
 
-        _mongo_client = MongoClient(MONGODB_URI, **mongo_client_options)
+        _mongo_client = MongoClient(uri, **mongo_client_options)
         _mongo_client.admin.command("ping")
-        logger.info("Connected to MongoDB database '%s'", MONGODB_DB_NAME)
-    return _mongo_client[MONGODB_DB_NAME][MONGODB_COLLECTION_NAME]
+        logger.info("Connected to MongoDB database '%s'", db_name)
+    return _mongo_client[db_name][collection_name]
 
 
 def ensure_data_file() -> None:
