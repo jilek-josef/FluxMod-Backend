@@ -50,6 +50,21 @@ def add_rule(guild_id: int, rule: Dict) -> None:
         else:
             rule["keywords"] = []
 
+    if "allowed_patterns" not in rule:
+        raw_allowed_patterns = rule.get("allowed_keywords", [])
+        if isinstance(raw_allowed_patterns, str):
+            rule["allowed_patterns"] = (
+                [raw_allowed_patterns.strip()] if raw_allowed_patterns.strip() else []
+            )
+        elif isinstance(raw_allowed_patterns, list):
+            rule["allowed_patterns"] = [
+                str(item).strip()
+                for item in raw_allowed_patterns
+                if str(item).strip()
+            ]
+        else:
+            rule["allowed_patterns"] = []
+
     guilds.update_one(
         {"guild_id": guild_id},
         {"$push": {"automod_rules": rule}},
@@ -67,6 +82,12 @@ def update_rule_by_id(rule_id: str, updates: Dict) -> Optional[Dict]:
                 "automod_rules.$.name": updates.get("name"),
                 "automod_rules.$.keywords": updates.get(
                     "keywords", updates.get("keyword", [])
+                ),
+                "automod_rules.$.allowed_patterns": updates.get(
+                    "allowed_patterns", updates.get("allowed_keywords", [])
+                ),
+                "automod_rules.$.allowed_keywords": updates.get(
+                    "allowed_patterns", updates.get("allowed_keywords", [])
                 ),
                 "automod_rules.$.pattern": updates.get("pattern"),
                 "automod_rules.$.action": updates.get("action"),

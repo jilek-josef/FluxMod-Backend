@@ -93,7 +93,30 @@ class DataWrapper:
         else:
             keywords = []
 
-        rule_payload = {**normalized_rule_payload, "keywords": keywords}
+        allowed_patterns_value = normalized_rule_payload.get(
+            "allowed_patterns",
+            normalized_rule_payload.get("allowed_keywords", []),
+        )
+        if isinstance(allowed_patterns_value, str):
+            allowed_patterns = (
+                [allowed_patterns_value.strip()]
+                if allowed_patterns_value.strip()
+                else []
+            )
+        elif isinstance(allowed_patterns_value, list):
+            allowed_patterns = [
+                str(item).strip()
+                for item in allowed_patterns_value
+                if str(item).strip()
+            ]
+        else:
+            allowed_patterns = []
+
+        rule_payload = {
+            **normalized_rule_payload,
+            "keywords": keywords,
+            "allowed_patterns": allowed_patterns,
+        }
 
         rule: dict[str, Any] = {
             "id": str(uuid.uuid4()),
@@ -122,7 +145,30 @@ class DataWrapper:
         else:
             keywords = []
 
-        update_payload = {**normalized_rule_payload, "keywords": keywords}
+        allowed_patterns_value = normalized_rule_payload.get(
+            "allowed_patterns",
+            normalized_rule_payload.get("allowed_keywords", []),
+        )
+        if isinstance(allowed_patterns_value, str):
+            allowed_patterns = (
+                [allowed_patterns_value.strip()]
+                if allowed_patterns_value.strip()
+                else []
+            )
+        elif isinstance(allowed_patterns_value, list):
+            allowed_patterns = [
+                str(item).strip()
+                for item in allowed_patterns_value
+                if str(item).strip()
+            ]
+        else:
+            allowed_patterns = []
+
+        update_payload = {
+            **normalized_rule_payload,
+            "keywords": keywords,
+            "allowed_patterns": allowed_patterns,
+        }
 
         updated_rule = update_rule_by_id(rule_id, update_payload)
         if updated_rule is None:

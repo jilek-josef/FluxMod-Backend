@@ -7,7 +7,7 @@ class ValidationError(ValueError):
     """Raised when request data fails backend validation."""
 
 
-REQUIRED_RULE_FIELDS = {"name", "pattern", "action"}
+REQUIRED_RULE_FIELDS = {"name", "action"}
 logger = get_logger("services.validators")
 
 
@@ -67,6 +67,18 @@ def parse_rule_payload(payload: dict) -> dict:
         debug_kv(logger, "Invalid keywords type received", keywords=keywords_value)
         raise ValidationError("keywords must be a list of strings")
 
+    pattern_value = payload.get("pattern", "")
+    if pattern_value is None:
+        pattern = ""
+    elif isinstance(pattern_value, str):
+        pattern = pattern_value.strip()
+    else:
+        debug_kv(logger, "Invalid pattern type received", pattern=pattern_value)
+        raise ValidationError("pattern must be a string")
+
+    if not keywords and not pattern:
+        raise ValidationError("A rule must include at least one keyword or one regex pattern")
+
     exempt_role_ids = _parse_optional_string_list(
         payload,
         "exempt_role_ids",
@@ -88,12 +100,20 @@ def parse_rule_payload(payload: dict) -> dict:
         "exemptUserIds",
         "ignored_user_ids",
     )
+    allowed_patterns = _parse_optional_string_list(
+        payload,
+        "allowed_patterns",
+        "allowed_keywords",
+        "allowedPatterns",
+        "allowedKeywords",
+    )
 
     return {
         "name": str(payload["name"]),
-        "pattern": str(payload["pattern"]),
+        "pattern": pattern,
         "action": str(payload["action"]),
         "keywords": keywords,
+        "allowed_patterns": allowed_patterns,
         "threshold": threshold,
         "enabled": enabled,
         "exempt_role_ids": exempt_role_ids,
