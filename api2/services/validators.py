@@ -11,6 +11,50 @@ REQUIRED_RULE_FIELDS = {"name", "action"}
 logger = get_logger("services.validators")
 
 
+def _parse_positive_int(value: object, field_name: str, *, min_value: int = 1, max_value: int | None = None) -> int:
+    parsed: int | None = None
+
+    if isinstance(value, bool):
+        parsed = None
+    elif isinstance(value, int):
+        parsed = value
+    elif isinstance(value, float) and value.is_integer():
+        parsed = int(value)
+    elif isinstance(value, str):
+        text = value.strip()
+        if text and text.lstrip("+-").isdigit():
+            parsed = int(text)
+
+    if parsed is None:
+        debug_kv(logger, "Invalid integer-like field received", field=field_name, value=value)
+        if max_value is None:
+            raise ValidationError(f"{field_name} must be an integer >= {min_value}")
+        raise ValidationError(f"{field_name} must be an integer between {min_value} and {max_value}")
+
+    if parsed < min_value or (max_value is not None and parsed > max_value):
+        debug_kv(logger, "Out-of-range integer field received", field=field_name, value=parsed)
+        if max_value is None:
+            raise ValidationError(f"{field_name} must be an integer >= {min_value}")
+        raise ValidationError(f"{field_name} must be an integer between {min_value} and {max_value}")
+
+    return parsed
+
+
+def _parse_bool_like(value: object, field_name: str) -> bool:
+    if isinstance(value, bool):
+        return value
+
+    if isinstance(value, str):
+        lowered = value.strip().lower()
+        if lowered in {"true", "1", "yes", "on"}:
+            return True
+        if lowered in {"false", "0", "no", "off"}:
+            return False
+
+    debug_kv(logger, "Invalid boolean-like field received", field=field_name, value=value)
+    raise ValidationError(f"{field_name} must be a boolean")
+
+
 def _parse_optional_string_list(payload: dict, *keys: str) -> list[str]:
     for key in keys:
         if key not in payload:
@@ -43,15 +87,11 @@ def parse_rule_payload(payload: dict) -> dict:
         debug_kv(logger, "Missing required rule fields", missing_fields=missing_fields)
         raise ValidationError(f"Missing required fields: {', '.join(missing_fields)}")
 
-    threshold = payload.get("threshold", 1)
-    if not isinstance(threshold, int) or threshold < 1:
-        debug_kv(logger, "Invalid threshold received", threshold=threshold)
-        raise ValidationError("threshold must be an integer >= 1")
+    threshold = _parse_positive_int(payload.get("threshold", 1), "threshold", min_value=1)
 
-    enabled = payload.get("enabled", True)
-    if not isinstance(enabled, bool):
-        debug_kv(logger, "Invalid enabled value received", enabled=enabled)
-        raise ValidationError("enabled must be a boolean")
+    severity = _parse_positive_int(payload.get("severity", 2), "severity", min_value=1, max_value=5)
+
+    enabled = _parse_bool_like(payload.get("enabled", True), "enabled")
 
     keywords_value = payload.get("keywords", payload.get("keyword", []))
     if isinstance(keywords_value, str):
@@ -112,6 +152,7 @@ def parse_rule_payload(payload: dict) -> dict:
         "name": str(payload["name"]),
         "pattern": pattern,
         "action": str(payload["action"]),
+        "severity": severity,
         "keywords": keywords,
         "allowed_patterns": allowed_patterns,
         "threshold": threshold,

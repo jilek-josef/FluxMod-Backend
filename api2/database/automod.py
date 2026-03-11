@@ -91,6 +91,7 @@ def update_rule_by_id(rule_id: str, updates: Dict) -> Optional[Dict]:
                 ),
                 "automod_rules.$.pattern": updates.get("pattern"),
                 "automod_rules.$.action": updates.get("action"),
+                "automod_rules.$.severity": updates.get("severity", 2),
                 "automod_rules.$.threshold": updates.get("threshold"),
                 "automod_rules.$.enabled": updates.get("enabled"),
                 "automod_rules.$.exempt_role_ids": updates.get("exempt_role_ids", []),
